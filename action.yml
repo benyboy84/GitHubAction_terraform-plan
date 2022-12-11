@@ -1,0 +1,15 @@
+name: 'Terrafrm Plan'
+description: 'This action uses the `terraform plan` generates a terraform plan. If the triggering event relates to a PR it will add a comment on the PR containing the generated plan.'
+author: 'Benoit Blais'
+
+inputs:
+
+
+runs:
+  using: "composite"
+  steps:
+    - id: BashScript
+      shell: bash
+      run: bash ${{ github.action_path }}/main.sh
+      env:
+        INPUT_COMMENT: ${{ inputs.Comment }}
