@@ -80,11 +80,9 @@ fi
 if [[ $ExitCode -eq 1 ]]; then
     Pr_Comment="### ${GITHUB_WORKFLOW} - Terraform plan Failed
 <details><summary>Show Output</summary>
-\`\`\`
 <p>
 $Output
 </p>
-\`\`\`
 </details>"
 fi
 
