@@ -1,8 +1,11 @@
 name: 'Terrafrm Plan'
-description: 'This action uses the `terraform plan` to generates a terraform plan. If the triggering event relates to a PR it will add a comment on the PR containing the generated plan.'
+description: 'This action uses the `terraform plan` to generates a terraform plan. If the triggering event relates to a PR, it will add a comment on the PR containing the generated plan.'
 author: 'Benoit Blais'
 
 outputs:
+  Plan:
+    description: 'Execution plan created by the command `terraform plan`.'
+    value: ${{ steps.BashScript.Outputs.Plan }}
   ExitCode:
     description: 'Exit code for the terraform plan command'
     value: ${{ steps.BashScript.Outputs.ExitCode }}
@@ -11,9 +14,22 @@ inputs:
   Github_Token:
     description: 'GITHUB_TOKEN use to authenticate on behalf of GitHub Actions.'
     required: true
-  Out_File:
-    description: 'Writes the generated plan to the given filename in an opaque file format that you can later pass to terraform apply to execute the planned changes, and to some other Terraform commands that can work with saved plan files.'
+  Refresh:
+    description: 'Disables the default behavior of synchronizing the Terraform state with remote objects before checking for configuration changes. This can causes Terraform to ignore external changes, which could result in an incomplete or incorrect plan. Options: [true, false]'
     required: false
+    default: true
+  Variable:
+    description: 'Sets value for a single declared input variable. One per line.'
+    requied: false
+    default: ""
+  Variable_File:
+    description: 'Sets values for potentially many input variables declared in the configuration, using definitions from a "tfvars" file.'
+    required: false
+    default: ""
+  Parallelism:
+    description: 'Limit the number of concurrent operations as Terraform walks the graph. Defaults to 10.'
+    required: false
+    default: 10
 
 runs:
   using: "composite"
@@ -23,4 +39,7 @@ runs:
       run: bash ${{ github.action_path }}/main.sh
       env:
         INPUT_GITHUB_TOKEN: ${{ inputs.Github_Token }}
-        INPUT_OUT_FILE: ${{ inputs.Out_File }}
+        INPUT_REFRESH: ${{ inputs.Refresh }}
+        INPUT_VARIABLE: ${{ inputs.Variable }}
+        INPUT_VARIABLE_FILE: ${{ inputs.Variable_File }}
+        INPUT_PARALLELISM: ${{ inputs.Parallelism }}

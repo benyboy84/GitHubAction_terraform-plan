@@ -1,20 +1,54 @@
 #!/bin/bash
 
-# Gather the output of `terraform plan`.
-echo "Terraform Plan | INFO  | Generates a terraform plan for $GITHUB_REPOSITORY."
-if [[ -n "$INPUT_OUT_FILE" ]]; then
-    
-    terraform plan -detailed-exitcode -input=false -no-color -out=${INPUT_OUT_FILE} > /dev/null
-    ExitCode=${?}
-    Output=$(terraform show -no-color ${INPUT_OUT_FILE})
-
+# Optional inputs
+if [[ ! "$INPUT_REFRESH" =~ ^(true|false)$ ]]; then
+    echo "Terraform Plan | ERROR    | Unsupported command \"$INPUT_REFRESH\" for input \"Refresh\". Valid commands are \"true\", \"false\"."
+    exit 1
 else
-
-    Output=$(terraform plan -detailed-exitcode -input=false -no-color ${*} 2>&1)
-    ExitCode=${?}
-
+    if [[ "$INPUT_REFRESH" == "true" ]]; then
+        Refresh=""
+    else
+        Refresh="-refresh=false"
+    fi
 fi
 
+Variables=""
+if [[ -n "$INPUT_VARIABLE" ]]; then
+    for Variable in $(echo "$INPUT_VARIABLE" | tr ',' '\n'); do
+        Variables="$Variables -var $Variable"
+    done
+fi
+echo $Variables
+
+VarFiles=""
+if [[ -n "$INPUT_VARIABLE_FILE" ]]; then
+    for VariableFile in $(echo "$INPUT_VARIABLE_FILE" | tr ',' '\n'); do
+        if [[ -f $VariableFile ]]; then
+            VarFiles="$VarFiles -varfile=$VariableFile"
+        else
+            echo "Terraform Plan | ERROR    | Variable file \"$VariableFile\" does not exist."
+            exit 1
+        fi
+    done
+fi
+
+Parallelism="10"
+if [[ $INPUT_PARALLELISM -ge 0 && $INPUT_PARALLELISM -le 10 ]]; then
+    Parallelism="-parallelism=$INPUT_PARALLELISM"
+else
+    echo "Terraform Plan | ERROR    | Unsupported command \"$INPUT_PARALLELISM\" for input \"Parallelism\". Valid commands are between 0-10."
+    exit 1
+fi
+
+# Set arguments
+Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
+
+# Gather the output of `terraform plan`.
+echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
+terraform plan -detailed-exitcode -input=false -no-color $Plan_Args -out=tfplan > /dev/null
+ExitCode=${?}
+Output=$(terraform show -no-color tfplan)
+echo "Plan=${Output}" >> $GITHUB_OUTPUT
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 
 # Exit Code: 0, 2
@@ -55,9 +89,13 @@ $Output
 </details>"
 fi
 
-if [[ "$GITHUB_EVENT_NAME" == "pull_request"  ]]; then
-     # Look for an existing plan PR comment and delete
-    echo "Terraform Plan | INFO  | Looking for an existing plan PR comment."
+if [[ "$GITHUB_EVENT_NAME" != "push" && "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_EVENT_NAME" != "issue_comment" && "$GITHUB_EVENT_NAME" != "pull_request_review_comment" && "$GITHUB_EVENT_NAME" != "pull_request_target" && "$GITHUB_EVENT_NAME" != "pull_request_review" ]]; then
+    echo "Terraform Plan | WARNING  | $GITHUB_EVENT_NAME event does not relate to a pull request."
+
+else
+
+    # Look for an existing plan PR comment and delete
+    echo "Terraform Plan | INFO     | Looking for an existing plan PR comment."
 
     Accept_Header="Accept: application/vnd.github.v3+json"
     Auth_Header="Authorization: token $INPUT_GITHUB_TOKEN"
@@ -69,17 +107,29 @@ if [[ "$GITHUB_EVENT_NAME" == "pull_request"  ]]; then
     Pr_Comment_Id=$(curl -sS -H "$Auth_Header" -H "$Accept_Header" -L "$Pr_Comments_Url" | jq '.[] | select(.body|test ("### '"${GITHUB_WORKFLOW}"' - Terraform plan")) | .id')
 
     if [ "$Pr_Comment_Id" ]; then
-        echo "Terraform Plan | INFO  | Found existing plan PR comment: $Pr_Comment_Id. Deleting."
+        echo "Terraform Plan | INFO     | Found existing plan PR comment: $Pr_Comment_Id. Deleting."
         Pr_Comment_Url="$Pr_Comment_Uri/$Pr_Comment_Id"
-        curl -sS -X DELETE -H "$Auth_Header" -H "$Accept_Header" -L "$Pr_Comment_Url" > /dev/null
+
+        {
+            curl -sS -X DELETE -H "$Auth_Header" -H "$Accept_Header" -L "$Pr_Comment_Url" > /dev/null
+        } ||
+        {
+            echo "Terraform Plan | ERROR    | Unable to delete existing plan comment in PR."
+        }
+
     else
-        echo "Terraform Plan | INFO  | No existing plan PR comment found."
+        echo "Terraform Plan | INFO     | No existing plan PR comment found."
     fi
     
     # Add plan comment to PR.
     Pr_Payload=$(echo '{}' | jq --arg body "$Pr_Comment" '.body = $body')
-    echo "Terraform Plan | INFO  | Adding plan comment to PR."
-    curl -sS -X POST -H "$Auth_Header" -H "$Accept_Header" -H "$Content_Header" -d "$Pr_Payload" -L "$Pr_Comments_Url" > /dev/null
+    echo "Terraform Plan | INFO     | Adding plan comment to PR."
+    {
+        curl -sS -X POST -H "$Auth_Header" -H "$Accept_Header" -H "$Content_Header" -d "$Pr_Payload" -L "$Pr_Comments_Url" > /dev/null
+    } ||
+    {
+        echo "Terraform Plan | ERROR    | Unable to add plan comment to PR."
+    }
 
 fi
 
