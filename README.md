@@ -105,6 +105,11 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
+          
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        shell: bash
 
       - name: terraform plan
         id: plan
