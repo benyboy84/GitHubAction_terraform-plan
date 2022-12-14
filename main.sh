@@ -89,6 +89,7 @@ $Output
 fi
 
 if [[ "$GITHUB_EVENT_NAME" != "push" && "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_EVENT_NAME" != "issue_comment" && "$GITHUB_EVENT_NAME" != "pull_request_review_comment" && "$GITHUB_EVENT_NAME" != "pull_request_target" && "$GITHUB_EVENT_NAME" != "pull_request_review" ]]; then
+ 
     echo "Terraform Plan | WARNING  | $GITHUB_EVENT_NAME event does not relate to a pull request."
 
 else
@@ -108,14 +109,12 @@ else
     if [ "$Pr_Comment_Id" ]; then
         echo "Terraform Plan | INFO     | Found existing plan PR comment: $Pr_Comment_Id. Deleting."
         Pr_Comment_Url="$Pr_Comment_Uri/$Pr_Comment_Id"
-
         {
             curl -sS -X DELETE -H "$Auth_Header" -H "$Accept_Header" -L "$Pr_Comment_Url" > /dev/null
         } ||
         {
             echo "Terraform Plan | ERROR    | Unable to delete existing plan comment in PR."
         }
-
     else
         echo "Terraform Plan | INFO     | No existing plan PR comment found."
     fi
