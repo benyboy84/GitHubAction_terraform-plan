@@ -9,7 +9,7 @@ outputs:
 
 inputs:
   GitHub_Token:
-    description: 'GITHUB_TOKEN use to authenticate on behalf of GitHub Actions.'
+    description: 'GitHub Token use to authenticate on behalf of GitHub Actions.'
     required: true
   Refresh:
     description: 'Disables the default behavior of synchronizing the Terraform state with remote objects before checking for configuration changes. This can causes Terraform to ignore external changes, which could result in an incomplete or incorrect plan. Options: [true, false]'
