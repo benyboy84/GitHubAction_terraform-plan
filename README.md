@@ -122,7 +122,7 @@ jobs:
         id: plan
         uses: benyboy84/github-action-tf-plan@v1.0.0
         with:
-          Github_Token: ${{ secrets.GITHUB_TOKEN }}
+          GitHub_Token: ${{ secrets.GITHUB_TOKEN }}
           Out_File: terraform.tfplan
 ```
 
