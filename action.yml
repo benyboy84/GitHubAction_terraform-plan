@@ -9,6 +9,8 @@ outputs:
   ExitCode:
     description: 'Exit code for the terraform plan command'
     value: ${{ steps.BashScript.Outputs.ExitCode }}
+  fichier:
+    value: ${{ steps.BashScript.Outputs.fichier }}
 
 inputs:
   GitHub_Token:
