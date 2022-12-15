@@ -47,7 +47,13 @@ Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
 echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
 Output=$(terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg)
 ExitCode=${?}
-#echo "Plan=${Output}" >> $GITHUB_OUTPUT
+
+# Because the output only works on single line input, we escape a few characters on output that the runners will then expand on input.
+Plan=$Output
+Plan="${$Plan//'%'/'%25'}"
+MY_STRING="${$Plan//$'\n'/'%0A'}"
+MY_STRING="${$Plan//$'\r'/'%0D'}"
+echo "Plan=${Plan}" >> $GITHUB_OUTPUT
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 
 # Exit Code: 0, 2
@@ -73,11 +79,7 @@ $Output
 </p>
 </details>"
 fi
-echo $Output
-echo -e "Plan=$Output" >> $GITHUB_OUTPUT
-echo -e $Output > tfplan
-value='cat tfplan'
-echo -e "fichier=$value" >> $GITHUB_OUTPUT
+
 # Exit Code: 1
 # Meaning: Terraform plan failed.
 # Actions: Build PR comment.
@@ -138,3 +140,6 @@ if [[ $ExitCode -eq 1 ]]; then
 else
     exit 0
 fi
+
+ echo "::set-output name=content::$MY_STRING"
+ echo "::set-output name=content::$MY_STRING"
