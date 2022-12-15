@@ -47,7 +47,7 @@ Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
 echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
 Output=$(terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg)
 ExitCode=${?}
-echo "Plan=${Output}" >> $GITHUB_OUTPUT
+#echo "Plan=${Output}" >> $GITHUB_OUTPUT
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 
 # Exit Code: 0, 2
@@ -76,6 +76,8 @@ fi
 echo $Output
 echo -e "Plan=$Output" >> $GITHUB_OUTPUT
 echo -e $Output > tfplan
+value='cat tfplan'
+echo -e "fichier=$value" >> $GITHUB_OUTPUT
 # Exit Code: 1
 # Meaning: Terraform plan failed.
 # Actions: Build PR comment.
