@@ -45,7 +45,7 @@ Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
 
 # Gather the output of `terraform plan`.
 echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
-terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT} > /dev/null
+$Output=$(terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT})
 ExitCode=${?}
 
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
@@ -78,7 +78,6 @@ fi
 # Meaning: Terraform plan failed.
 # Actions: Build PR comment.
 if [[ $ExitCode -eq 1 ]]; then
-    Output=terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT} 2>&1
     Pr_Comment="### ${GITHUB_WORKFLOW} - Terraform plan Failed
 <details><summary>Show Output</summary>
 <p>
