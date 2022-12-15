@@ -3,9 +3,6 @@ description: 'This action uses the `terraform plan` to generates a terraform pla
 author: 'Benoit Blais'
 
 outputs:
-  Plan:
-    description: 'Execution plan created by the command `terraform plan`.'
-    value: ${{ steps.BashScript.Outputs.Plan }}
   ExitCode:
     description: 'Exit code for the terraform plan command'
     value: ${{ steps.BashScript.Outputs.ExitCode }}
@@ -30,6 +27,10 @@ inputs:
     description: 'Limit the number of concurrent operations as Terraform walks the graph. Defaults to 10.'
     required: false
     default: 10
+  Out:
+    description: 'Writes the generated plan to the given filename in an opaque file format that you can later pass to terraform apply to execute the planned changes, and to some other Terraform commands that can work with saved plan files.'
+    required: true
+    default: terraform.tfplan
 
 runs:
   using: "composite"
@@ -43,3 +44,4 @@ runs:
         INPUT_VARIABLE: ${{ inputs.Variable }}
         INPUT_VARIABLE_FILE: ${{ inputs.Variable_File }}
         INPUT_PARALLELISM: ${{ inputs.Parallelism }}
+        INPUT_OUT: ${{ inputs.Out }}
