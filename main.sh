@@ -73,7 +73,7 @@ $Output
 </p>
 </details>"
 fi
-
+echo "Plan=${Output}" >> $GITHUB_OUTPUT
 # Exit Code: 1
 # Meaning: Terraform plan failed.
 # Actions: Build PR comment.
