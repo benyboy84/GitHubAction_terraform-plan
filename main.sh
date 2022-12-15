@@ -50,9 +50,9 @@ ExitCode=${?}
 
 # Because the output only works on single line input, we escape a few characters on output that the runners will then expand on input.
 Plan=$Output
-Plan="${$Plan//'%'/'%25'}"
-MY_STRING="${$Plan//$'\n'/'%0A'}"
-MY_STRING="${$Plan//$'\r'/'%0D'}"
+Plan="${Plan//'%'/'%25'}"
+Plan="${Plan//$'\n'/'%0A'}"
+Plan="${Plan//$'\r'/'%0D'}"
 echo "Plan=${Plan}" >> $GITHUB_OUTPUT
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 
