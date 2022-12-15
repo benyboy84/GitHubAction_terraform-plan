@@ -45,9 +45,8 @@ Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
 
 # Gather the output of `terraform plan`.
 echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
-terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT} > /dev/null
+Output=terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT} 
 ExitCode=${?}
-Output=$(terraform show -no-color ${INPUT_OUT})
 
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 
@@ -55,19 +54,20 @@ echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 # Meaning: 0 = Terraform plan succeeded with no changes. 2 = Terraform plan succeeded with changes.
 # Actions: Strip out the refresh section, ignore everything after the 72 dashes, format, colourise and build PR comment.
 if [[ $ExitCode -eq 0 || $ExitCode -eq 2 ]]; then
-    if echo "${Output}" | egrep '^-{72}$' &> /dev/null; then
-        Output=$(echo "${Output}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
+    Plan=$(terraform show -no-color ${INPUT_OUT})
+    if echo "${Plan}" | egrep '^-{72}$' &> /dev/null; then
+        Plan=$(echo "${Plan}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
         echo "egrep"
     fi
-    Output=$(echo "${Output}" | tail -c 65300) # GitHub has a 65535-char comment limit - truncate plan, leaving space for comment wrapper
-    Output=$(echo "${Output}" | sed -r 's/^([[:blank:]]*)([-+~])/\2\1/g') # Move any diff characters to start of line
-    Output=$(echo "${Output}" | sed -r 's/~/!/g') # Replace ~ with ! to colourise the diff in GitHub comments
+    Plan=$(echo "${Plan}" | tail -c 65300) # GitHub has a 65535-char comment limit - truncate plan, leaving space for comment wrapper
+    Plan=$(echo "${Plan}" | sed -r 's/^([[:blank:]]*)([-+~])/\2\1/g') # Move any diff characters to start of line
+    Plan=$(echo "${Plan}" | sed -r 's/~/!/g') # Replace ~ with ! to colourise the diff in GitHub comments
     Pr_Comment="### ${GITHUB_WORKFLOW} - Terraform plan Succeeded
 <details><summary>Show Output</summary>
 <p>
 
 \`\`\`diff
-$Output
+$Plan
 \`\`\`
 
 </p>
