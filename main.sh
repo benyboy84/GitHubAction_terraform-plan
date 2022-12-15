@@ -45,22 +45,16 @@ Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
 
 # Gather the output of `terraform plan`.
 echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
-Output=$(terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg)
+terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT} > /dev/null
 ExitCode=${?}
+Output=$(terraform show -no-color ${INPUT_OUT})
 
-# Because the output only works on single line input, we escape a few characters on output that the runners will then expand on input.
-Plan=$Output
-Plan="${Plan//'%'/'%25'}"
-Plan="${Plan//$'\n'/'%0A'}"
-Plan="${Plan//$'\r'/'%0D'}"
-echo "Plan=${Plan}" >> $GITHUB_OUTPUT
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
 
 # Exit Code: 0, 2
 # Meaning: 0 = Terraform plan succeeded with no changes. 2 = Terraform plan succeeded with changes.
 # Actions: Strip out the refresh section, ignore everything after the 72 dashes, format, colourise and build PR comment.
 if [[ $ExitCode -eq 0 || $ExitCode -eq 2 ]]; then
-    Output=$(echo "${Output}" | sed -n '/Terraform will perform the following actions/,$p') # Ignore everything before 
     if echo "${Output}" | egrep '^-{72}$' &> /dev/null; then
         Output=$(echo "${Output}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
         echo "egrep"
@@ -140,6 +134,3 @@ if [[ $ExitCode -eq 1 ]]; then
 else
     exit 0
 fi
-
- echo "::set-output name=content::$MY_STRING"
- echo "::set-output name=content::$MY_STRING"
