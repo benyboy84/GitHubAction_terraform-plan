@@ -45,7 +45,7 @@ Plan_Args="$Refresh $Variables $VarFiles $Parallelism"
 
 # Gather the output of `terraform plan`.
 echo "Terraform Plan | INFO     | Generates a terraform plan for $GITHUB_REPOSITORY."
-Output=$(terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT})
+Output=$(terraform plan -detailed-exitcode -input=false -no-color $Plan_Arg -out=${INPUT_OUT} 2>&1)
 ExitCode=${?}
 
 echo "ExitCode=${ExitCode}" >> $GITHUB_OUTPUT
