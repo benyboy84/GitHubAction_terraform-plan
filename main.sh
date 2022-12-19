@@ -106,7 +106,9 @@ else
         Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
         echo $Pr_Comments_Url
     fi
-    echo "$GITHUB_EVENT_PATH"
+    value=`cat $GITHUB_EVENT_PATH`  
+    echo "$value"  
+    #echo "$GITHUB_EVENT_PATH"
     #Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
     #echo $Pr_Comments_Url
     Pr_Comment_Uri=$(jq -r ".repository.issue_comment_url" "$GITHUB_EVENT_PATH" | sed "s|{/number}||g")
