@@ -98,9 +98,15 @@ else
     Accept_Header="Accept: application/vnd.github.v3+json"
     Auth_Header="Authorization: token $INPUT_GITHUB_TOKEN"
     Content_Header="Content-Type: application/json"
-    echo $GITHUB_EVENT_PATH
-    Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
-    echo $Pr_Comments_Url
+    
+    if [[ -n "$INPUT_URL" ]]; then
+        Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
+    else
+        Pr_Comments_Url=$INPUT_URL
+    fi
+    #echo $GITHUB_EVENT_PATH
+    #Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
+    #echo $Pr_Comments_Url
     Pr_Comment_Uri=$(jq -r ".repository.issue_comment_url" "$GITHUB_EVENT_PATH" | sed "s|{/number}||g")
 
     Pr_Comment_Id=$(curl -sS -H "$Auth_Header" -H "$Accept_Header" -L "$Pr_Comments_Url" | jq '.[] | select(.body|test ("### '"${GITHUB_WORKFLOW}"' - Terraform plan")) | .id')
