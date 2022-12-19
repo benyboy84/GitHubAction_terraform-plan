@@ -98,11 +98,13 @@ else
     Accept_Header="Accept: application/vnd.github.v3+json"
     Auth_Header="Authorization: token $INPUT_GITHUB_TOKEN"
     Content_Header="Content-Type: application/json"
-    
+    echo "$INPUT_URL"
     if [[ -n "$INPUT_URL" ]]; then
-        Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
+        Pr_Comments_Url="$INPUT_URL"
+        echo $Pr_Comments_Url
     else
-        Pr_Comments_Url=$INPUT_URL
+        Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
+        echo $Pr_Comments_Url
     fi
     #echo $GITHUB_EVENT_PATH
     #Pr_Comments_Url=$(jq -r ".pull_request.comments_url" "$GITHUB_EVENT_PATH")
